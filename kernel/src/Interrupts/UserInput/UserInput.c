@@ -18,8 +18,10 @@ void HandleKbd(uint8_t sc) {
 
     if (scan_code < sizeof(USLayout) / sizeof(USLayout[0])) {
         if (USLayout[scan_code] != 0) { // Check for unassigned keys
-            PutChar(USLayout[scan_code]);
+            //PutCharAtPos(USLayout[scan_code], 0, 0);
             //font_char(USLayout[scan_code], 12, 12, 0xFFFFFF);
+            PutCharSimple(USLayout[scan_code]);
+            IOWait();
         }
     } else {
         // Handle invalid scan codes (you can add logging or debugging here)

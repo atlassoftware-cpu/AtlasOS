@@ -102,3 +102,35 @@ void PutCharAtPos(char c, int x, int y) {
 void PutChar(char c) {
     PutCharAtPos(c, ScreenGridPt.x, ScreenGridPt.y);
 }
+
+void PutCharSimple(char c) {
+    switch (c) {
+        case '\n':
+            Cursor.x = 0;
+            Cursor.y += 8;
+            break;
+        case '\b':
+            if (Cursor.x-8 < 0) {
+                Cursor.x = 0;
+                Cursor.y = 1920-8;
+            } else {
+                Cursor.x -= 8;
+            }
+            break;
+        case '\t':
+            Cursor.x += 8*4;
+            if (Cursor.x > 1920) {
+                Cursor.x = 1920;
+                break;
+            }
+            break;
+        default:
+            font_char(c, Cursor.x, Cursor.y, 0xFFFFFF);
+            Cursor.x+=8;
+            if (Cursor.x > 1920) {
+                Cursor.x = 0;
+                Cursor.y += 8;
+            }
+            break;
+    }
+}

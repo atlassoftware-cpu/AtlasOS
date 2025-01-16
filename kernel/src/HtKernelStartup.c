@@ -85,8 +85,18 @@ void PIC_remap(int offset1, int offset2) {
     outb(PIC2_DATA, a2);
 }
 
-__attribute__((section("._HtKernel"))) _Noreturn static void _HtKernelStartup(struct limine_framebuffer* framebuffer) {
+void SetKeyboardRateAndDelay(uint8_t delay, uint8_t rate) {
+    outb(0x60, 0xF3);         // Set Rate and Delay command
+    while (inb(0x60) != 0xFA); // Wait for ACK
+    
+    outb(0x60, delay);         // Send Delay (0-3)
+    while (inb(0x60) != 0xFA); // Wait for ACK
+    
+    outb(0x60, rate);          // Send Rate (0-3)
+    while (inb(0x60) != 0xFA); // Wait for ACK
+}
 
+__attribute__((section("._HtKernel"))) _Noreturn static void _HtKernelStartup(struct limine_framebuffer* framebuffer) {
     GDTDescriptor gdtDesc;
     gdtDesc.Size = sizeof(GDT) - 1;
     gdtDesc.Offset = (uint64_t)&DefaultGDT;
@@ -124,6 +134,8 @@ __attribute__((section("._HtKernel"))) _Noreturn static void _HtKernelStartup(st
     idt_set_descriptor(0x21, &kb, 0x8E);
     idt_set_descriptor(0x2C, &mouse, 0x8E);
     idt_set_descriptor(0x80, &syscall, 0x8F);
+
+    SetKeyboardRateAndDelay(0, 0);
 
     idt_init();
 

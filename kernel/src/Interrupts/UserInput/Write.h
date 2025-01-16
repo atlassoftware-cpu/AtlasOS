@@ -8,4 +8,5 @@
 
 void InitializeScreenGrid(struct limine_framebuffer* fb);
 void PutCharAtPos(char c, int x, int y);
-void PutChar(char c) ;
+void PutChar(char c);
+void PutCharSimple(char c);
