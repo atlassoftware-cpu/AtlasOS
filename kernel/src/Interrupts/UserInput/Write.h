@@ -4,6 +4,7 @@
 #include <FontRenderer/FontRenderer.h>
 #include <Paging/PageFrameAlloc/PageFrameAllocator.h>
 #include <stdint.h>
+#include <stddef.h>
 
 void InitializeScreenGrid(struct limine_framebuffer* fb);
 void PutCharAtPos(char c, int x, int y);

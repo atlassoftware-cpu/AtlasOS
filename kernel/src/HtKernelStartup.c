@@ -128,8 +128,9 @@ __attribute__((section("._HtKernel"))) _Noreturn static void _HtKernelStartup(st
     idt_init();
 
     IRQ_clear_mask(1);
+    IRQ_clear_mask(12);
 
-    InitializeScreenGrid(framebuffer);
+    InitializeScreenGrid(&framebuffer);
 
     while (1) {}
 }

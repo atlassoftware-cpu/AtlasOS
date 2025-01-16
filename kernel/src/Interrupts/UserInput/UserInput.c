@@ -1,5 +1,6 @@
 #include <FontRenderer/FontRenderer.h>
 #include "Write.h"
+#include "UserInput.h"
 
 char USLayout[128] = {
     0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
@@ -12,7 +13,17 @@ char USLayout[128] = {
 };
 
 void HandleKbd(uint8_t sc) {
-    PutChar(USLayout[sc]);
+    // Mask to ensure we are working with the valid part of the scan code
+    uint8_t scan_code = sc & 0x7F;  // 0x7F to mask out any upper bits
+
+    if (scan_code < sizeof(USLayout) / sizeof(USLayout[0])) {
+        if (USLayout[scan_code] != 0) { // Check for unassigned keys
+            PutChar(USLayout[scan_code]);
+            //font_char(USLayout[scan_code], 12, 12, 0xFFFFFF);
+        }
+    } else {
+        // Handle invalid scan codes (you can add logging or debugging here)
+    }
 }
 
 void HandleMouse(uint8_t packet) {

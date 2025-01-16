@@ -53,7 +53,7 @@ void* RequestPages(size_t num_pages) {
     for (size_t i = 1; i < num_pages; ++i) {
         void* page_address = RequestPage();
         if (!page_address) {
-            // Handle allocation failure (e.g., free previously allocated pages)
+            FreePages(base_address, i);
             return NULL;
         }
     }
