@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "CMOS.h"
+#include <CPU/IO/IO.h>
 
 // Function to read a byte from the CMOS RTC
 uint8_t readCmosByte(uint8_t reg) {

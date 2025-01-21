@@ -28,7 +28,7 @@ extern void _memset32(void*, void*, size_t);
 __attribute__((noreturn))
 void excepetion_handler(void);
 void exception_handler() {
-    _memset32(fb->address, 0x0000FF, fb->width * fb->height);
+    _memset32(fb->address, (void*) 0x0000FF, fb->width * fb->height);
     font_str("Oops! AtlasOS has ran into an error :(", 12, 12, 0xEEEEEEFF);
     font_str("AtlasSuper-POWER: You may now change the power state of the machine...", 12, 20, 0xEEEEEEFF);
     font_str("Halting the machine...", 12, 28, 0xEEEEEEFF);
