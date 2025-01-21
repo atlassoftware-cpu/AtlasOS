@@ -15,6 +15,7 @@
 #include <Interrupts/UserInput/Mouse/Mouse.h>
 #include <CMOS/CMOS.h>
 #include <CStr.h>
+#include <Timer.h>
 
 __attribute__((section("._HtKernel"))) _Noreturn static void _HtKernelStartup(struct limine_framebuffer* framebuffer);
 
@@ -118,6 +119,105 @@ void PrintHexToSerial(uint32_t hex_num) {
     }
 }
 
+extern char* _strcpy(char* destination, const char* source);
+
+uint64_t ticks = 0;
+
+__attribute__((interrupt)) void rtc(InterruptFrame* Frame) {
+    PrintHexToSerial(ticks++);
+}
+
+uint64_t slow_fibonacci(uint64_t n) {
+    // Horribly inefficient Fibonacci using recursion with no memoization
+    if (n <= 1) {
+        return n;
+    } else {
+        return slow_fibonacci(n - 1) + slow_fibonacci(n - 2);
+    }
+}
+
+void slow_operation() {
+    // Step 2: Call the slow Fibonacci function many times in a loop
+    for (volatile int i = 0; i < 1; i++) {
+        volatile uint64_t fib_result = slow_fibonacci(40);  // Fibonacci(40) is extremely slow to compute
+        if (fib_result % 2 == 0) {
+            // Just to further waste time
+            volatile int dummy = fib_result;
+        }
+    }
+}
+
+__attribute__((hot, used)) void RefreshOSWidgets();
+
+void SlideUp(uint32_t color) {
+    uint32_t* buffer = (uint32_t*)fb->address;
+
+    for (int y = fb->height - 1; y >= 0; y--) {
+        for (int x = 0; x < fb->width; x++) {
+            buffer[y * fb->width + x] = color;
+        }
+        // Delay function to create the sliding effect
+        for (volatile int delay = 0; delay < 100000; delay++);
+    }
+}
+
+int ENABLED_MENU_ICON = 0;
+
+void EnableMenuIcon() {
+    if (ENABLED_MENU_ICON == 0) {
+        ENABLED_MENU_ICON = 1;
+        /*  Menu Window */
+        /* show new screen */
+        SlideUp(0xFF1E1E1E);
+        for (int x = 0; x <= fb->width; x++) {
+            for (int y = 0; y <= 22; y++) {
+                PutPx(x, y, 0xFF2F2F2F);
+            }
+        }
+        font_char('X', fb->width-16, 8, 0xFFE81123);
+        Button_t EXIT = CreateButton("X", &EnableMenuIcon, fb->width-16, 8, 22, 22);
+        SetBtnEnabled(EXIT);
+    } else {
+        ENABLED_MENU_ICON = 0;
+        // Add code to close the menu here
+        RefreshOSWidgets(); // Refresh the widgets after closing the menu
+    }
+}
+
+__attribute__((hot, used)) void RefreshOSWidgets() {
+    uint32_t* buffer = (uint32_t*)fb->address;
+
+    uint8_t top_r = 0, top_g = 128, top_b = 255;   // Intense light blue (top)
+    uint8_t bottom_r = 0, bottom_g = 64, bottom_b = 128; // Intense deep blue (bottom)
+
+    for (int y = 0; y < fb->height; y++) {
+        int t = (y * 256) / (fb->height - 1); // Interpolation factor (0 to 256)
+
+        // Interpolate colors using fixed-point arithmetic
+        uint8_t r = ((256 - t) * top_r + t * bottom_r) / 256;
+        uint8_t g = ((256 - t) * top_g + t * bottom_g) / 256;
+        uint8_t b = ((256 - t) * top_b + t * bottom_b) / 256;
+
+        // Combine RGB into a 32-bit color
+        uint32_t color = (r << 16) | (g << 8) | b;
+
+        for (int x = 0; x < fb->width; x++) {
+            buffer[y * fb->width + x] = color;
+        }
+    }
+
+    for (int x = 0; x < fb->width; x++) {
+        for (int y = fb->height - 1; y >= fb->height - 50; y--) {
+            buffer[y * fb->width + x] = 0xFF1E1E1E;
+        }
+    }
+
+    DrawBmp(DesktopAccess, fb->width-36, fb->height-50/2-(32/2), 2, 2);
+    DrawBmp(MenuIcon, fb->width/2-(16), fb->height-50/2-(32/2), 2, 2);
+    DrawBmp(Clock, (32/2), fb->height-50/2-(32/2), 2, 2);
+    DrawBmp(PowerIcon, fb->width/2+(16), fb->height-50/2-(32/2), 2, 2);
+}
+
 __attribute__((section("._HtKernel"))) _Noreturn static void _HtKernelStartup(struct limine_framebuffer* framebuffer) {
     GDTDescriptor gdtDesc;
     gdtDesc.Size = sizeof(GDT) - 1;
@@ -151,29 +251,32 @@ __attribute__((section("._HtKernel"))) _Noreturn static void _HtKernelStartup(st
 
     font_str("Loading Kernel...", framebuffer->width/2-(String_Length_Px/2), framebuffer->height/2-(8/2)+135, 0xFFFFFFFF);
 
+    //slow_operation();
 
     idt_set_descriptor(0x21, &kb, 0x8E);
     idt_set_descriptor(0x2C, &mouse, 0x8E);
     idt_set_descriptor(0x80, &syscall, 0x8F);
 
-    SetKeyboardRateAndDelay(0, 0);
-
     idt_init();
 
     PIC_remap(0x20, 0x28);
 
+    outb(0x21, 0b11111001);
+    outb(0xA1, 0b11011111);
     IRQ_clear_mask(1);
+    IRQ_clear_mask(2);
+    IRQ_clear_mask(12);
 
     __asm__ volatile ("sti"); // set the interrupt flag
 
-    for (int i = 0; i <= 1000; i++) {
-        IOWait();
-    }
+    InitPS2Mouse(); 
 
     uint32_t* buffer = (uint32_t*)fb->address;
 
     uint8_t top_r = 0, top_g = 128, top_b = 255;   // Intense light blue (top)
     uint8_t bottom_r = 0, bottom_g = 64, bottom_b = 128; // Intense deep blue (bottom)
+
+    SlideUp(0x007Cf8);
 
     for (int y = 0; y < fb->height; y++) {
         int t = (y * 256) / (fb->height - 1); // Interpolation factor (0 to 256)
@@ -202,61 +305,14 @@ __attribute__((section("._HtKernel"))) _Noreturn static void _HtKernelStartup(st
     DrawBmp(Clock, (32/2), fb->height-50/2-(32/2), 2, 2);
     DrawBmp(PowerIcon, fb->width/2+(16), fb->height-50/2-(32/2), 2, 2);
 
-    Time __time = ReadCmos();  // Assume ReadCMOS() correctly returns the current time
-    Time* time = &__time;
+    InitWindowManager(framebuffer);
 
-    // Convert minute to string with leading zero if needed
-    char min[3];
-    if (time->minute < 10) {
-        min[0] = '0';  // Add leading zero
-        min[1] = '0' + time->minute;  // Convert single digit to character
-        min[2] = '\0';  // Null-terminate the string
-    } else {
-        _itoa(time->minute, min, 10);  // Use _itoa for two-digit minutes
+    Button_t BtnMenuAccess = CreateButton("Menu Access", &EnableMenuIcon, fb->width/2-(16), fb->height-50/2-(32/2), 32, 32);
+    SetBtnEnabled(BtnMenuAccess);
+
+    while (1) {
+        ProcessMousePacket();
     }
-
-    // Convert hour to string and handle AM/PM with leading zero if needed
-    char hr_[3];  // Temporary storage for hour as string
-    int hour_12 = time->hour;  // Store hour in 12-hour format
-
-    // Adjust hour for 12-hour format
-    if (hour_12 == 0) {
-        hour_12 = 12;  // Midnight is 12 AM
-    } else if (hour_12 > 12) {
-        hour_12 -= 12;  // Convert hours 13-23 to 1-11 PM
-    }
-
-    if (hour_12 < 10) {
-        hr_[0] = '0';  // Add leading zero
-        hr_[1] = '0' + hour_12;  // Convert single digit to character
-        hr_[2] = '\0';  // Null-terminate the string
-    } else {
-        _itoa(hour_12, hr_, 10);  // Use _itoa for two-digit hours
-    }
-
-    char hr[6];  // Buffer for formatted hour (AM/PM + hour)
-    if (time->hour >= 12) {
-        hr[0] = 'P';
-        hr[1] = 'M';
-        hr[2] = ' ';
-        hr[3] = hr_[0];
-        hr[4] = hr_[1];
-        hr[5] = '\0';  // Null-terminate the string
-    } else {
-        hr[0] = 'A';
-        hr[1] = 'M';
-        hr[2] = ' ';
-        hr[3] = hr_[0];
-        hr[4] = hr_[1];
-        hr[5] = '\0';  // Null-terminate the string
-    }
-
-    // Create the time string (AM/PM hour:minute)
-    char time__[9] = {hr[0], hr[1], hr[2], hr[3], hr[4], ':', min[0], min[1], '\0'};
-
-    // Display the time
-    font_str(time__, (32 / 2) + 35, fb->height - 50 / 2 - 4, 0xFFFFFF);
 
     while (1) {}
 }
-

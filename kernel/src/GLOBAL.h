@@ -1,3 +1,3 @@
 #pragma once
 
-int ALLOW_WRITE = 0;
+int ALLOW_WRITE = 1;

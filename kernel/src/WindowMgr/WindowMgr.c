@@ -12,6 +12,8 @@ void InitWindowManager(struct limine_framebuffer* framebuffer) {
     winmgr->framebuffer = (uint32_t*)framebuffer->address; // Use the correct member name
 }
 
+extern _memset(void*,int,size_t);
+
 void CreateWindowProc(WindowManagerFramebuffer* framebuffer) {
     // TODO: Create a title bar (12 pixels high) and a close button
     // TODO: Write window name on the title bar

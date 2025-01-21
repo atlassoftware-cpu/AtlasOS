@@ -8,29 +8,27 @@
 __attribute__((interrupt)) void kb(InterruptFrame* Frame) {
     if (ALLOW_WRITE == 0) return;
     uint8_t scancode = inb(0x60);
-
+    
     if (scancode & 0x80) {
-        outb(0x20, 0x20);
+        outb(0x20, 0x20);  // Acknowledge the interrupt on master PIC
         IOWait();
         return;
     }
 
     HandleKbd(scancode);
-
-    outb(0x20, 0x20);
-    IOWait();
+    outb(0x20, 0x20);  // Acknowledge the interrupt on master PIC
 }
 
 __attribute__((interrupt)) void mouse(InterruptFrame* Frame) {
-    outb(0xA0, 0x20);
-    uint8_t data = inb(0x60);
-    HandleMouse(data);
+    uint8_t data = inb(0x60);  // Read data from mouse
+    HandlePS2Mouse(data);
+    ProcessMousePacket();  // Process the mouse packet
+    outb(0x20, 0x20);  // Acknowledge interrupt on master PIC
+    outb(0xA0, 0x20);  // Acknowledge interrupt on slave PIC
 }
 
 __attribute__((interrupt)) void syscall(InterruptFrame* Frame) {
-    if (Frame->rax == 0xFFFFFFFFFFFFFFFF) {
         outb(0xE9, 'R');
         outb(0xE9, 'A');
         outb(0xE9, 'X');
-    }
 }

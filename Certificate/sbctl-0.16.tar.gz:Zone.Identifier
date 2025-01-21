@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://github.com/Foxboron/sbctl/releases/tag/0.16
+HostUrl=https://objects.githubusercontent.com/github-production-release-asset-2e65be/260986040/25c87ff2-fc1e-471d-aec9-1bbaa9ae2a2d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=releaseassetproduction%2F20250118%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250118T071528Z&X-Amz-Expires=300&X-Amz-Signature=407be38d3a780419a76cc716f3e562947db086325047d8235fe2512b686d7d01&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3Dsbctl-0.16.tar.gz&response-content-type=application%2Foctet-stream

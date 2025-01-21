@@ -20,3 +20,5 @@ uint32_t GetPx(uint32_t x, uint32_t y);
 
 void DrawOverlayMouseCursor(uint8_t* mouseCursor, Point position, uint32_t color);
 void ClearMouseCursor(uint8_t* mouseCursor, Point position);
+
+void FillScreen(uint32_t color);

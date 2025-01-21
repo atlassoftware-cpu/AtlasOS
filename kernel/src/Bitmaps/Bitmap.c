@@ -118,3 +118,11 @@ void DrawOverlayMouseCursor(uint8_t* mouseCursor, Point position, uint32_t color
 
     MouseDrawn = true;
 }
+
+void FillScreen(uint32_t color) {
+    for (uint32_t y = 0; y < fb->height; y++) {
+        for (uint32_t x = 0; x < fb->width; x++) {
+            PutPx(x, y, color);
+        }
+    }
+}

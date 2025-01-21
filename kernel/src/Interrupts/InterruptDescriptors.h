@@ -2,6 +2,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "UserInput/Mouse/Mouse.h"
 
 typedef struct _interrupt_frame_t {
     uint64_t rip;

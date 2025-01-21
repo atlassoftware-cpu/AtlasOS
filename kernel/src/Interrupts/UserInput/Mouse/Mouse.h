@@ -4,7 +4,9 @@
 #include <Bitmaps/BitmapDraw.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <Point.h>
+#include <config.h>
 
 #define PS2Leftbutton 0b00000001
 #define PS2Middlebutton 0b00000100
@@ -30,3 +32,17 @@ extern Point MousePositionOld;
 void HandlePS2Mouse(uint8_t data);
 void ProcessMousePacket();
 void InitPS2Mouse();
+
+typedef struct _button_t {
+    char label[17];
+    void (*Handler)();
+    Point Position;
+    Point Scale;
+    int Enabled;
+} Button_t;
+
+Button_t CreateButton(const char* label, void (*Handler)(), uint64_t x, uint64_t y, uint64_t sx, uint64_t sy);
+void RemoveButton(int btn_index);
+void CheckBtns(uint64_t x, uint64_t y);
+void SetBtnEnabled(Button_t btn);
+void ClearBtnEnabled(Button_t btn);

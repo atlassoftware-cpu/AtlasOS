@@ -135,6 +135,12 @@ void* _memset32(void* s, uint32_t c, std::size_t n) {
     return s;
 }
 
+char* _strcpy(char* destination, const char* source) {
+    char* ptr = destination;
+    while ((*ptr++ = *source++));
+    return destination;
+}
+
 }
 
 // Halt and catch fire function.

@@ -6,7 +6,7 @@ MAKEFLAGS += -rR
 ARCH := x86_64
 
 # Default user QEMU flags. These are appended to the QEMU command calls.
-QEMUFLAGS := -m 3G
+QEMUFLAGS := -m 4G -debugcon stdio
 
 override IMAGE_NAME := atlas-os_$(ARCH)
 
@@ -248,10 +248,28 @@ distclean:
 	$(MAKE) -C kernel distclean
 	rm -rf iso_root *.iso *.hdd kernel-deps limine ovmf
 
-.PHONY: com3_debug.com3
-com3_debug.com3:
-	@rm -rf com3_debug.com3
-	@touch com3_debug.com3
+run-debug:
+	qemu-system-$(ARCH) \
+	-M q35 \
+	-drive if=pflash,unit=0,format=raw,file=ovmf/ovmf-code-$(ARCH).fd,readonly=on \
+	-cdrom $(IMAGE_NAME).iso \
+	$(QEMUFLAGS) -d int
 
-run-com3: com3_debug.com3
-	qemu-system-x86_64 -M q35 -hda $(IMAGE_NAME).iso -serial file:com3_debug.com3 -device isa-serial,chardev=charcom3 -chardev file,id=charcom3,path=com3_debug.com3
+menuconfig:
+	@dialog --menu "Select pointing device:" 15 50 3 \
+		1 "USB Mouse" \
+		2 "PS/2 Mouse" \
+		3 "No Mouse" 2> choice.txt
+	@choice=$$(cat choice.txt); \
+	case $$choice in \
+		1) echo "#include <config.h>" > kernel/src/config.tmp; \
+		   echo "int POINTING_DEVICE = BUILD_CONFIG_SET_MOUSE;" >> kernel/src/config.tmp;; \
+		2) echo "#include <config.h>" > kernel/src/config.tmp; \
+		   echo "int POINTING_DEVICE = BUILD_CONFIG_SET_KEYBOARD_CRSR;" >> kernel/src/config.tmp;; \
+		3) echo "#include <config.h>" > kernel/src/config.tmp; \
+		   echo "int POINTING_DEVICE = 0;" >> kernel/src/config.tmp;; \
+		*) echo "Invalid choice"; exit 1;; \
+	esac
+	@mv kernel/src/config.tmp kernel/src/config.c
+	@rm -f choice.txt
+	@clear
