@@ -36,6 +36,10 @@ uint32_t inl(uint16_t port) {
     return ret;
 }
 
+
+uint32_t ral(uint16_t port);
+uint32_t rah(uint16_t port);
+
 uint64_t inq(uint16_t port) {
     uint32_t low = ral(port);
     uint32_t high = rah(port);

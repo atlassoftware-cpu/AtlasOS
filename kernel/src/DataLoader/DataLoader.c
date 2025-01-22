@@ -1,4 +1,5 @@
 #include "DataLoader.h"
+#include <Paging/PageFrameAlloc/PageFrameAllocator.h>
 
 void* LoadDataToMemory(const void* source, size_t size) {
     if (source == NULL || size == 0) {
@@ -6,7 +7,6 @@ void* LoadDataToMemory(const void* source, size_t size) {
     }
 
     // Page size and calculation
-    const size_t PAGE_SIZE = 4096; // Assuming 4KB pages
     size_t pages_needed = (size + PAGE_SIZE - 1) / PAGE_SIZE; // Total pages required
 
     // Allocate memory for the data
