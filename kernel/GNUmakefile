@@ -266,10 +266,6 @@ obj-$(ARCH)/%.asm.o: src/%.asm GNUmakefile
 	nasm $(NASMFLAGS) $< -o $@
 endif
 
-format-code: obj-$(ARCH)/%.c.o: src/%.c GNUmakefile
-	mkdir -p "$$(dirname $@)"
-	clang-format -c $< -o $@
-
 # Remove object files and the final executable.
 .PHONY: clean
 clean:

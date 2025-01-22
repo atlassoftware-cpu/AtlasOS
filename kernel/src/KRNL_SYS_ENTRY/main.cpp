@@ -26,7 +26,11 @@ volatile limine_framebuffer_request framebuffer_request = {
     .revision = 0,
     .response = nullptr
 };
-
+volatile limine_rsdp_request rsdp_request = {
+    .id = LIMINE_RSDP_REQUEST,
+    .revision = 0,
+    .response = nullptr
+};
 }
 
 // Finally, define the start and end markers for the Limine requests.
@@ -195,6 +199,10 @@ extern "C" void kmain() {
      || framebuffer_request.response->framebuffer_count < 1) {
         hcf();
     }
+
+    //if (rsdp_request.response == nullptr) {
+    //    hcf();
+    //}
 
     // Fetch the first framebuffer.
     limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];

@@ -177,10 +177,13 @@ void EnableMenuIcon() {
         font_char('X', fb->width-16, 8, 0xFFE81123);
         Button_t EXIT = CreateButton("X", &EnableMenuIcon, fb->width-16, 8, 22, 22);
         SetBtnEnabled(EXIT);
+
+
     } else {
         ENABLED_MENU_ICON = 0;
         // Add code to close the menu here
         RefreshOSWidgets(); // Refresh the widgets after closing the menu
+        return;
     }
 }
 
@@ -307,11 +310,62 @@ __attribute__((section("._HtKernel"))) _Noreturn static void _HtKernelStartup(st
 
     InitWindowManager(framebuffer);
 
+    void InitConsole();
+
     Button_t BtnMenuAccess = CreateButton("Menu Access", &EnableMenuIcon, fb->width/2-(16), fb->height-50/2-(32/2), 32, 32);
     SetBtnEnabled(BtnMenuAccess);
 
+    char string[14] = "Hello, World!\n\0";
+
+    asm volatile ("mov $0, %rax");
+    asm volatile ("mov $14, %rbx");
+    asm volatile ("mov %0, %%rcx" : : "r"(string));
+    asm volatile ("int $0x80");
+
+    asm volatile ("int $0x80");
+
+    asm volatile ("int $0x80");
+
+    asm volatile ("int $0x80");
+
+    asm volatile ("int $0x80");
+
     while (1) {
         ProcessMousePacket();
+
+        Time time = ReadCmos();
+        int hours = time.hour;
+        int minutes = time.minute;
+        char hours_str[3];
+        char minutes_str[3];
+        _itoa(hours, hours_str, 10);
+        _itoa(minutes, minutes_str, 10);
+        char time_str[9]; // HH:MM AM/PM
+
+        // Determine AM/PM
+        char* period = "AM";
+        if (hours >= 12) {
+            period = "PM";
+            if (hours > 12) {
+            hours -= 12;
+            }
+        } else if (hours == 0) {
+            hours = 12;
+        }
+
+        // Format the time string manually
+        time_str[0] = (hours / 10) + '0';
+        time_str[1] = (hours % 10) + '0';
+        time_str[2] = ':';
+        time_str[3] = (minutes / 10) + '0';
+        time_str[4] = (minutes % 10) + '0';
+        time_str[5] = ' ';
+        time_str[6] = period[0];
+        time_str[7] = period[1];
+        time_str[8] = '\0';
+
+        // Display the time string
+        font_str(time_str, 32/2+34, fb->height - 50/2-(8/2), 0xFFFFFFFF);
     }
 
     while (1) {}

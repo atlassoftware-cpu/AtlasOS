@@ -259,7 +259,8 @@ menuconfig:
 	@dialog --menu "Select pointing device:" 15 50 3 \
 		1 "USB Mouse" \
 		2 "PS/2 Mouse" \
-		3 "No Mouse" 2> choice.txt
+		3 "No Mouse" 2> choice.txt \
+		4 "Cancel"
 	@choice=$$(cat choice.txt); \
 	case $$choice in \
 		1) echo "#include <config.h>" > kernel/src/config.tmp; \
@@ -268,7 +269,6 @@ menuconfig:
 		   echo "int POINTING_DEVICE = BUILD_CONFIG_SET_KEYBOARD_CRSR;" >> kernel/src/config.tmp;; \
 		3) echo "#include <config.h>" > kernel/src/config.tmp; \
 		   echo "int POINTING_DEVICE = 0;" >> kernel/src/config.tmp;; \
-		*) echo "Invalid choice"; exit 1;; \
 	esac
 	@mv kernel/src/config.tmp kernel/src/config.c
 	@rm -f choice.txt
