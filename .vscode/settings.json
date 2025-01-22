@@ -2,7 +2,6 @@
     "files.associations": {
         "cstdint": "cpp",
         "string.h": "c",
-        "stdlib.h": "c",
         "config.h": "c"
     }
 }
